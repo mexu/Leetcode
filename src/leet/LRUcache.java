@@ -2,112 +2,96 @@ package leet;
 
 import java.util.HashMap;
 
-public class LRUcache {
-	private class Node{
-        public int val;
-        public Node last = null;
-        public Node next = null;
-        public Node(int val){
-            this.val = val;
-        }
+public class LRUCache {
+	
+	//Double Linked List Node
+    class DLLNode{
+    	int key;
+    	int value;
+    	private DLLNode pre;
+    	private DLLNode post;
+    	public DLLNode(int key,int value){
+    		this.key=key;
+    		this.value=value;
+    	}
     }
-    private class DoubleLinkedList{
-        public Node head = null;
-        public Node tail = null;
-
-        //插入节点至尾部
-        public void addNode(Node p){
-            if(p == null) return ;
-            if(head == null){
-                this.head = p;
-                this.tail = p;
-            }else{
-                this.tail.next = p;
-                p.last = this.tail;
-                this.tail = p;
-            }
-        }
-        //节点p被使用(get/set)，移至链表尾部
-        public void moveNodeToTail(Node p){
-            if(this.tail == p) return;
-            if(this.head == p){
-                this.head = this.head.next;
-                head.last = null;
-            }else{
-                p.last.next = p.next;
-                p.next.last = p.last;
-            }
-            p.next = null;
-            p.last = this.tail;
-            this.tail.next = p;
-            this.tail = p;
-        }
-        //移除头结点
-        public Node removehead(){
-            if(this.head == null) return null;
-            Node temp = this.head;
-            if(this.head == this.tail){
-                this.head = null;
-                this.tail = null;
-            }else{
-                this.head = this.head.next;
-                this.head.last = null;
-                temp.next = null;
-            }
-            return temp;
-        }
+	
+    private HashMap<Integer,DLLNode> cachemap = new HashMap<Integer,DLLNode>();
+    private int capacity;
+    private int len;
+    private DLLNode head;
+    private DLLNode end;
+	
+	public LRUCache(int capacity) {
+		this.capacity=capacity;
+        len=0;
     }
-    //构造器
-    public LRUcache(int capacity) {
-        if(capacity < 1)
-            throw new RuntimeException("!!!!!!!!");
-        this.capacity = capacity;
-        this.keyNodeMap = new HashMap<Integer, Node>();
-        this.nodeKeyMap = new HashMap<Node, Integer>();
-        this.nodeList = new DoubleLinkedList();
-    }
-
-    //get元素
+    
     public int get(int key) {
-        if(keyNodeMap.containsKey(key)){
-            Node temp = keyNodeMap.get(key);
-            nodeList.moveNodeToTail(temp);
-            return temp.val;
-        }
+    	
+    	if(cachemap.containsKey(key)){
+    		//delete from origin position
+    		DLLNode node=cachemap.get(key);
+    		deleteNode(node);
+    		sethead(node);   		
+    		return node.value;
+    	}
         return -1;
     }
-
-    //set元素
-    public void set(int key, int value) {
-        if(keyNodeMap.containsKey(key)){
-            Node temp = keyNodeMap.get(key);
-            temp.val = value;
-            nodeList.moveNodeToTail(temp);
-        }else{
-            Node temp = new Node(value);
-            keyNodeMap.put(key, temp);
-            nodeKeyMap.put(temp, key);
-            nodeList.addNode(temp);
-            //关键点：如果超过capacity，则移除头结点
-            if(keyNodeMap.size() == (this.capacity + 1)){
-                Node headTemp = nodeList.removehead();
-                int keyTemp = nodeKeyMap.get(headTemp);
-                keyNodeMap.remove(keyTemp);
-                nodeKeyMap.remove(headTemp);
-            }
-        }
+    //head and end is only a pointer. do not set it as a dummy!
+    private void deleteNode(DLLNode node){
+    	if(node.pre==null){
+    		DLLNode post=node.post;
+    		if(post!=null){
+    	    	post.pre=null;
+    	    	head=post;
+    		}else head=null;
+    	}else {
+    		DLLNode pre=node.pre;
+    		DLLNode post=node.post;
+    		if(post!=null){
+    			pre.post=post;
+    			post.pre=pre;
+    		}else{
+    			pre.post=null;
+    			end=pre;
+    		}
+    	}
     }
-    //缓存尺寸
-    private int capacity;
-    private DoubleLinkedList nodeList  = null;
-    //key->Node(value)的map
-    private HashMap<Integer, Node> keyNodeMap = null;
-    //Node(value) -> key的map, 用set方法中获取头结点的key
-    private HashMap<Node, Integer> nodeKeyMap = null;
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-
+    
+    public void set(int key, int value) {
+    	if(!cachemap.containsKey(key)){
+    		//insert
+    		if(len==capacity){
+    			//when full, remove from hashmap and also the linkedlist end node
+    			cachemap.remove(end.key);
+    			end=end.pre;
+    			end.post=null;
+    		}
+    		DLLNode node=new DLLNode(key,value);
+    		cachemap.put(key, node);
+    		sethead(node);
+    	} else{
+    		//update so need to delet original position and set to head
+    		DLLNode node=new DLLNode(key,value);
+    		deleteNode(cachemap.get(key));
+    		cachemap.put(key, node);
+    		sethead(node);
+    	}
+    }
+    
+    public void sethead(DLLNode node){
+    	node.post=head;
+    	node.pre=null;
+    	//when list is empty you gotta need to set head and end
+    	if(head!=null){
+    	    head.pre=node;
+    	}
+    	if(end==null){
+    	    end=node;
+    	}
+		head=node;
+    }
+    
+    
 }
