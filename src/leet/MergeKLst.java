@@ -1,6 +1,14 @@
 package leet;
 
 public class MergeKLst {
+	public class ListNode{
+		ListNode next;
+		int val;
+		ListNode(int n){
+			val=n;
+			this.next=null;
+		}
+	}
 	public ListNode mergeKLists(ListNode[] lists) {
         int len=lists.length-1;
         if(lists.length==0||lists==null) return null;

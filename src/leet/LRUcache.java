@@ -2,9 +2,10 @@ package leet;
 
 import java.util.HashMap;
 
-public class LRUCache {
+public class LRUcache {
 	
-	//Double Linked List Node
+	//Considering the item in cache is randomly picked despite of the order of entering the cache
+	//Double linked list is easy to insert or delete and is more flexible, complexity is O(1);
     class DLLNode{
     	int key;
     	int value;
@@ -15,14 +16,14 @@ public class LRUCache {
     		this.value=value;
     	}
     }
-	
+	//To reduce the time to find the cache item in the list, we can use HashMap, O(1);
     private HashMap<Integer,DLLNode> cachemap = new HashMap<Integer,DLLNode>();
     private int capacity;
     private int len;
     private DLLNode head;
     private DLLNode end;
 	
-	public LRUCache(int capacity) {
+	public LRUcache(int capacity) {
 		this.capacity=capacity;
         len=0;
     }
@@ -45,6 +46,7 @@ public class LRUCache {
     		if(post!=null){
     	    	post.pre=null;
     	    	head=post;
+    	    	//re-set head if old head is deleted!
     		}else head=null;
     	}else {
     		DLLNode pre=node.pre;
@@ -55,6 +57,7 @@ public class LRUCache {
     		}else{
     			pre.post=null;
     			end=pre;
+    			//re-set end if old end is deleted!
     		}
     	}
     }
@@ -72,6 +75,7 @@ public class LRUCache {
     		cachemap.put(key, node);
     		sethead(node);
     	} else{
+    		//when the key exist,you still need to update!
     		//update so need to delet original position and set to head
     		DLLNode node=new DLLNode(key,value);
     		deleteNode(cachemap.get(key));
