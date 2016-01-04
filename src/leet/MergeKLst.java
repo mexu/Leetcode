@@ -1,5 +1,7 @@
 package leet;
 
+import java.util.HashMap;
+
 public class MergeKLst {
 	public class ListNode{
 		ListNode next;
